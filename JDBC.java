@@ -3,19 +3,34 @@ import java.sql.Connection;
 
 public class JDBC 
 {
-	Connection connection = null;
+	Connection con = null;
 
-	String username = "";
-	String password = "";
-	String url = "jdbc:oracle:bingsuns@localhost:1521:xe";
+	private String username = "pwatter1";
+	private String password = "pineapple";
+	private String url = "jdbc:oracle:thin:@bingsuns.cc.binghamton.edu:1521:xe";
 
 	public static Connection createConnection()
 	{
-		connection = DriverManager.getConnection("")
+		try {
+			Class.forName("oracle.jdbc.driver.OracleDriver"); //load jdbc driver
+			con = DriverManager.getConnection(url, username, password);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return con;
 	}
 
 	public static void closeConnection() 
 	{
-		if (connection != null) { connection.close(); } 
+		if (con != null) 
+		{ 
+			try {
+				con.close();
+			} catch (Exception e) {
+				System.err.println("Error: Exception closing jdbc conneciton.");
+				e.printStackTrace();
+				System.exit(-1);
+			}
+		}
 	}
 }
