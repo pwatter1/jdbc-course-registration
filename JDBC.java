@@ -7,10 +7,10 @@ public class JDBC
         {
                 Connection con = null;
                 try {
-                        DriverManager.registerDriver(new oracle.jdbc.OracleDriver());
+                    DriverManager.registerDriver(new oracle.jdbc.OracleDriver());
                     OracleDataSource ds = new oracle.jdbc.pool.OracleDataSource();
-                ds.setURL("jdbc:oracle:thin:@castor.cc.binghamton.edu:1521:ACAD111");
-                con = ds.getConnection("pwatter1", "pineapple1");
+                    ds.setURL("jdbc:oracle:thin:@castor.cc.binghamton.edu:1521:ACAD111");
+                    con = ds.getConnection("pwatter1", "pineapple1");
                 } catch (Exception e) {
                         e.printStackTrace();
                 }
