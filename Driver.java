@@ -6,10 +6,7 @@ public class Driver
 	public static final Connection con = JDBC.createConnection();
 	public static final Scanner scan = new Scanner(System.in);
 
-	public static void main(String[] args) 
-	{
-		getOption();
-	}
+	public static void main(String[] args) { getOption(); }
 
 	public static addStudent() 
 	{	
