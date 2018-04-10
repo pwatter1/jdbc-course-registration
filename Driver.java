@@ -5,13 +5,15 @@ public class Driver
 {
         public static final Connection con = JDBC.createConnection();
         public static final Scanner scan = new Scanner(System.in);
+        public static Statement stmt = con.createStatement(); 
+        public static ResultSet rset = null;
 
         public static void main(String[] args) { getOption(); }
 
         public static void addStudent() throws SQLException 
         {       
-                System.out.println("Attempting to add a student: ");
-                System.out.print("Enter an SID: ");
+        	System.out.println();
+                System.out.println("Adding a Student - Enter an SID: ");
                 String sid = scan.next();
                 System.out.println();
                 System.out.print("Enter First Name: ");
@@ -29,7 +31,6 @@ public class Driver
                 System.out.print("Enter Student's GPA: ");
                 float gpa = scan.nextFloat();
                 scan.nextLine();
-                
 
         }
 
@@ -47,10 +48,10 @@ public class Driver
                 int in = scan.nextInt();
                 System.out.println();
 
-                Statement stmt = con.createStatement(); 
-                ResultSet rset = null;
+                // use a regular statement bc we dont need dynamic params
+                // use executeQuery bc we expect it to return result sets
 
-                if (in == 1) { rset = stmt.executeQuery("SELECT * FROM students"); }
+                if (in == 1) {      rset = stmt.executeQuery("SELECT * FROM students"); }
                 else if (in == 2) { rset = stmt.executeQuery("SELECT * FROM courses"); }
                 else if (in == 3) { rset = stmt.executeQuery("SELECT * FROM prerequisites"); }
                 else if (in == 4) { rset = stmt.executeQuery("SELECT * FROM classes"); }
@@ -70,15 +71,24 @@ public class Driver
                         System.out.print (rset.getString (5)+"  ");
                         System.out.println (rset.getString (6)+"  ");
                 }
-                JDBC.closeStatement(stmt);
-                JDBC.closeResultSet(rset);
+                getOption();
+        }
+
+        public static void viewStudent()
+        {
+        	System.out.println();
+        	System.out.println("Viewing a Student - Enter an SID: ");
+                System.out.print("Enter an SID: ");
+                String sid = scan.next();
+                System.out.println();
+
+
         }
 
         public static void getOption() 
         {
                 System.out.println();
                 System.out.println("--------------- CS432 DB Project 2 ---------------");
-                System.out.println("Enter a number: ");
                 System.out.println("1 View a Table");
                 System.out.println("2 Add a Student");
                 System.out.println("3 Delete a Student");
@@ -96,29 +106,25 @@ public class Driver
                                 case 1:
                                         viewTable();
                                         break;
-
                                 case 2:
                                         addStudent();
                                         break;
-
                                 case 3:
                                         break;
-
                                 case 4:
                                         break;
-
                                 case 5:
                                         break;
-
                                 case 6:
                                         break;
-
                                 case 7:
                                         break;
                                 case 8:
                                         System.out.println("--------------------------------------------------");
                                         JDBC.closeConnection(con);
-                                        System.exit(0);
+                                        JDBC.closeStatement(stmt);
+                						JDBC.closeResultSet(rset); 
+                						System.exit(0);
                                 default:
                                         System.out.println("You've entered an invalid option.");
                                         getOption();
@@ -128,3 +134,4 @@ public class Driver
                 }
         }
 }
+
