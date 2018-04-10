@@ -8,8 +8,18 @@ public class Driver
         public static Statement stmt = con.createStatement(); 
         public static ResultSet rset = null;
 
-        public static void main(String[] args) { getOption(); }
+        public static void main(String[] args) { getOption(); createLogSequence(); }
 
+        public static void createLogSequence() 
+        {
+        	String query = "CREATE SEQUENCE LOG_SEQ START WITH 100 MAXVALUE 999 MINVALUE 100 INCREMENT BY 1";
+   		Boolean retVal = stmt.execute(query);
+		if (!retVal) { 
+			System.out.println("Error: creating log id sequence.");
+			System.exit(-1);
+		}
+        }
+        
         public static void addStudent() throws SQLException 
         {       
         	System.out.println();
