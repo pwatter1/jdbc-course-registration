@@ -3,45 +3,73 @@ import java.util.*;
 
 public class Driver
 {
+        public static ResultSet rset = null;
+	public static Statement stmt = null;
+        public static PreparedStatement pStmt = null;
+        public static CallableStatement cStmt = null;
         public static final Connection con = JDBC.createConnection();
         public static final Scanner scan = new Scanner(System.in);
-        public static Statement stmt = con.createStatement(); 
-        public static ResultSet rset = null;
 
         public static void main(String[] args) { getOption(); createLogSequence(); }
 
-        public static void createLogSequence() 
+        public static void createLogSequence()  
         {
-        	String query = "CREATE SEQUENCE LOG_SEQ START WITH 100 MAXVALUE 999 MINVALUE 100 INCREMENT BY 1";
-   		Boolean retVal = stmt.execute(query);
-		if (!retVal) { 
-			System.out.println("Error: creating log id sequence.");
-			System.exit(-1);
-		}
+                try {
+                        String query;
+                        stmt = con.createStatement();
+                        
+                        // check if sequence already created
+                        query = "SELECT COUNT(*) AS VAL FROM user_sequences WHERE sequence_name = 'LOG_SEQ'";           
+                        rset = stmt.executeQuery(query);
+                        
+                        if (rset.getInt("VAL") != 1) // not created yet 
+                        {
+                                query = "CREATE SEQUENCE LOG_SEQ IF NOT EXISTS START WITH 100 MAXVALUE 999 MINVALUE 100 INCREMENT BY 1";
+                                Boolean retVal = stmt.execute(query);
+                                if (!retVal) { 
+                                        System.out.println("Error: Creating Logid Sequence.");
+                                        System.exit(-1);
+                                }
+                        }
+                } catch (SQLException e) {
+                        e.printStackTrace();
+                }
         }
-        
+
         public static void addStudent() throws SQLException 
         {       
-        	System.out.println();
-                System.out.println("Adding a Student - Enter an SID: ");
-                String sid = scan.next();
                 System.out.println();
+                System.out.print("Adding a Student - Enter an SID: ");
+                String sid = scan.next();
                 System.out.print("Enter First Name: ");
                 String first = scan.next();
-                System.out.println();
                 System.out.print("Enter Last Name: ");
                 String last = scan.next();
-                System.out.println();
                 System.out.print("Enter Student's Status: ");
                 String status = scan.next();
-                System.out.println();
                 System.out.print("Enter Student's Email: ");
                 String email = scan.next();
-                System.out.println();
                 System.out.print("Enter Student's GPA: ");
-                float gpa = scan.nextFloat();
+                double gpa = scan.nextDouble();
                 scan.nextLine();
 
+		String query = "insert into STUDENTS(sid, firstname, lastname, status, gpa, email) values (?,?,?,?,?,?)";
+		pStmt = con.prepareStatement(query);
+		pStmt.setString(1, sid);
+		pStmt.setString(2, first);
+		pStmt.setString(3, last);
+		pStmt.setString(4, status);
+		pStmt.setDouble(5, gpa);
+		pStmt.setString(6, email);
+
+		if (pStmt.executeUpdate() == 1) {
+			System.out.println();
+			System.out.println("Success: Student Added.");
+			getOption();
+		} else {
+			System.out.println();
+			System.out.println("Error: Student unable to be added to Students Table.");
+		}                
         }
 
         public static void viewTable() throws SQLException
@@ -60,6 +88,8 @@ public class Driver
 
                 // use a regular statement bc we dont need dynamic params
                 // use executeQuery bc we expect it to return result sets
+                
+                stmt = con.createStatement();
 
                 if (in == 1) {      rset = stmt.executeQuery("SELECT * FROM students"); }
                 else if (in == 2) { rset = stmt.executeQuery("SELECT * FROM courses"); }
@@ -86,13 +116,50 @@ public class Driver
 
         public static void viewStudent()
         {
-        	System.out.println();
-        	System.out.println("Viewing a Student - Enter an SID: ");
+                System.out.println();
+                System.out.println("Viewing a Student - Enter an SID: ");
                 System.out.print("Enter an SID: ");
                 String sid = scan.next();
                 System.out.println();
 
+                // list sid, last, and status from students table
+                // show all courses and their info taken from enrollments, courses, classes
 
+                query = "SELECT sid, lastname, status FROM students WHERE sid=?";
+                pStmt = con.prepareStatement(query);
+                pStmt.setString(1, sid);
+                rset = pStmt.executeQuery();
+
+                if (rset.next()) {
+                        System.out.println(rset.getString(1));
+                } else {
+                        System.out.println();
+                        System.out.println("Error: The SID is invalid.");
+                        getOption();
+                } 
+
+                String classid;
+                boolean found = false;
+                query = "SELECT classid FROM enrollments WHERE sid=?";
+                pStmt = con.prepareStatement(query);
+                pStmt.setString(1, sid);
+                rset = pStmt.executeQuery();
+                
+                
+                while (rset.next()) {
+                        found = true;
+                        classid = rset.getString("classid");
+                        viewCourseInfo(classid);                        
+                }
+                if (found == false) {
+                        System.out.println();
+                        System.out.println("The student has not taken any courses.");
+                }
+        }
+
+        public static void viewCourseInfo(String classid)
+        {
+                query = "Select 
         }
 
         public static void getOption() 
@@ -122,6 +189,7 @@ public class Driver
                                 case 3:
                                         break;
                                 case 4:
+                                        viewStudentInfo();
                                         break;
                                 case 5:
                                         break;
@@ -133,8 +201,8 @@ public class Driver
                                         System.out.println("--------------------------------------------------");
                                         JDBC.closeConnection(con);
                                         JDBC.closeStatement(stmt);
-                						JDBC.closeResultSet(rset); 
-                						System.exit(0);
+                                        JDBC.closeResultSet(rset); 
+                                        System.exit(0);
                                 default:
                                         System.out.println("You've entered an invalid option.");
                                         getOption();
@@ -144,4 +212,3 @@ public class Driver
                 }
         }
 }
-
